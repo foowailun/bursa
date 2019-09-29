@@ -30,7 +30,6 @@ def run_crawler():
     
     # Get announcement data                  
     announcement_urls = get_bursa_announcement_urls(webdriver_PATH, 'http://www.bursamalaysia.com/market/listed-companies/company-announcements/#/?category=SH&sub_category=SH3&alphabetical=All&date_from=' + current_date.strftime('%d/%m/%Y') + '&date_to=' + current_date.strftime('%d/%m/%Y') + '&board=MAIN-MKT')
-    announcement_urls = get_bursa_announcement_urls(webdriver_PATH, 'http://www.bursamalaysia.com/market/listed-companies/company-announcements/#/?category=SH&sub_category=SH3&alphabetical=All&date_from=26/09/2019&date_to=26/09/2019&board=MAIN-MKT')
                                                     
     for announcement_url in announcement_urls:  
        # Get announcement data 
