@@ -1,0 +1,165 @@
+# Step 1 – Setting up a Debian OS environment 
+FROM debian
+RUN apt update
+RUN apt install -y wget
+RUN apt install -y vim
+RUN apt install -y ssh
+# RUN apt install xz-utils
+
+RUN ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
+RUN cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+RUN echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
+RUN echo "AuthorizedKeysFile      .ssh/authorized_keys .ssh/authorized_keys2" >> /etc/ssh/sshd_config
+# RUN ssh localhost
+# RUN useradd -ms /bin/bash hduser
+# RUN usermod -aG sudo hduser
+#
+# USER hduser
+# WORKDIR /usr/local/bin/hduser
+
+# RUN mkdir -p /keys/id_rsa
+# RUN ssh-keygen -y -q -t rsa -N '' # -f /keys/id_rsa
+# RUN yes y | ssh-keygen -q -t rsa -N '' >/dev/null
+# RUN cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+
+# Step 2 – Setting up JAVA
+# RUN wget https://download.java.net/openjdk/jdk8u40/ri/openjdk-8u40-b25-linux-x64-10_feb_2015.tar.gz
+# RUN tar -xzvf openjdk-8u40-b25-linux-x64-10_feb_2015.tar.gz
+# RUN mv java-se-8u40-ri /usr/local/java
+# RUN wget https://openjdk-sources.osci.io/openjdk8/openjdk8u212-b03.tar.xz
+# RUN tar -xvf openjdk8u212-b03.tar.xz
+# RUN mv jdk8u212-b03 /usr/local/java
+# RUN wget https://github.com/frekele/oracle-java/releases/download/8u212-b10/jdk-8u212-linux-x64.tar.gz 
+# RUN tar -xzvf jdk-8u212-linux-x64.tar.gz 
+# RUN mv jdk1.8.0_212 /usr/local/java
+RUN wget https://blog.forsre.com/java/jdk-8u221-linux-x64.tar.gz
+RUN tar -xzvf jdk-8u221-linux-x64.tar.gz
+RUN mv jdk1.8.0_221 /usr/local/java
+
+# Step 3 – Setting up HADOOP
+RUN wget https://www.apache.org/dist/hadoop/core/hadoop-3.2.1/hadoop-3.2.1.tar.gz
+RUN tar -xzvf hadoop-3.2.1.tar.gz
+RUN mv hadoop-3.2.1 /usr/local/hadoop
+RUN echo "export JAVA_HOME=/usr/local/java" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+RUN echo "export HDFS_NAMENODE_USER=root" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+RUN echo "export HDFS_DATANODE_USER=root" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+RUN echo "export HDFS_SECONDARYNAMENODE_USER=root" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+RUN echo "export YARN_RESOURCEMANAGER_USER=root" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+RUN echo "export YARN_NODEMANAGER_USER=root" >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+
+
+# Step 4 – Setting up HIVE 
+RUN wget https://www-eu.apache.org/dist/hive/hive-3.1.2/apache-hive-3.1.2-bin.tar.gz
+RUN tar -xzvf apache-hive-3.1.2-bin.tar.gz
+RUN mv apache-hive-3.1.2-bin /usr/local/hive
+RUN echo "export HADOOP_HOME=usr/local/hadoop" >> /usr/local/hive/bin/hive-config.sh
+#RUN /usr/local/hadoop/bin/hadoop dfs -mkdir -p /user/hive/warehouse
+#RUN /usr/local/hadoop/bin/hadoop dfs -chmod 765 /user/hive/warehouse
+#RUN /usr/local/hive/bin/schematool -initSchema -dbType derby
+# Step 4 - Setting paths
+RUN echo 'export JAVA_HOME=/usr/local/java' >> ~/.bashrc
+RUN echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc
+RUN echo 'export HADOOP_HOME=/usr/local/hadoop' >> ~/.bashrc
+RUN echo 'export PATH=$PATH:$HADOOP_HOME/bin' >> ~/.bashrc
+RUN echo 'export HIVE_HOME=/usr/local/hive' >> ~/.bashrc
+RUN echo 'export PATH=$PATH:$HIVE_HOME/bin' >> ~/.bashrc
+RUN bash ~/.bashrc
+
+# https://www.edureka.co/blog/install-hadoop-single-node-hadoop-cluster
+# core-site.xml
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '<configuration>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '<name>fs.default.name</name>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '<value>hdfs://localhost:9000</value>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/core-site.xml
+RUN echo '</configuration>' >> /usr/local/hadoop/etc/hadoop/core-site.xml 
+
+# hdfs-site.xml 
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '<configuration>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '<name>dfs.replication</name>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '<value>1</value>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+# RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+# RUN echo '<name>dfs.permission</name>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+# RUN echo '<value>false</value>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+# RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+RUN echo '</configuration>' >> /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+
+# mapred-site.xml
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<configuration>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<name>mapreduce.framework.name</name>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<value>yarn</value>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<name>mapreduce.application.classpath</name>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '<value>/usr/local/hadoop/share/hadoop/mapreduce/*:$</value>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+RUN echo '</configuration>' >> /usr/local/hadoop/etc/hadoop/mapred-site.xml
+
+# yarn-site.xml
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<configuration>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<name>yarn.nodemanager.aux-services</name>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<value>mapreduce_shuffle</value>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<name>yarn.nodemanager.</name>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '<value>JAVA_HOME, HADOOP_HOME</value>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+# RUN echo '<property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+# RUN echo '<name>yarn.nodemanager.auxservices.mapreduce.shuffle.class</name>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+# RUN echo '<value>org.apache.hadoop.mapred.ShuffleHandler</value>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+# RUN echo '</property>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+RUN echo '</configuration>' >> /usr/local/hadoop/etc/hadoop/yarn-site.xml
+
+# HDFS
+# RUN hadoop namenode -format
+# RUN /usr/local/hadoop/sbin/start-dfs.sh 
+# RUN jps
+# RUN hdfs dfsadmin -report
+# FULL HDFS multi-node installation - https://www.linode.com/docs/databases/hadoop/how-to-install-and-set-up-hadoop-cluster/
+#
+
+# Step 5 - Demo
+RUN wget https://raw.githubusercontent.com/foowailun/bursa/master/2019-10-13_price_table.csv
+# RUN hdfs dfs -put 2019-10-13_price_table.csv /user/hive/warehouse
+# RUN hdfs dfs -ls user/hive/warehouse
+
+# RUN hive --service hiveserver2 start
+# RUN hive --service hiveserver2 stop
+#
+# create table test(c1 String, c2 String, c3 String, c4 String, c5 String, c6 String, c7 String, c8 String, c9
+# String, c10 String, c11 String, c12 String, c13 String, c14 String, c15 String, c16 String)
+# ROW FORMAT ELIMITED
+# FIELDS TERMINATED BY ','
+# STORED AS TEXTFILE;
+#
+# # DFS
+# LOAD DATA INPATH '/user/hive/warehouse/2019-10-13_price_table.csv' INTO TABLE test;
+#
+# # Local
+# LOAD DATA LOCAL INPATH 'user/hive/warehouse/2019-10-13_price_table.csv' INTO TABLE test;
+
+RUN rm /usr/local/hive/lib/guava-19.0.jar
+RUN mv usr/local/hadoop/share/hadoop/common/lib/guava-27.0-jre.jar /usr/local/hive/lib/ 
+
+RUN /etc/init.d/ssh start
+# RUN /usr/local/hadoop/bin/hadoop namenode -format
+# RUN /usr/local/hadoop/sbin/start-yarn.sh
+# RUN /usr/local/hadoop/sbin/start-dfs.sh
+
+# RUN /usr/local/hadoop/bin/hadoop dfs -mkdir -p /user/hive/warehouse
+# RUN /usr/local/hadoop/bin/hadoop dfs -chmod 765 /user/hive/warehouse
+# RUN /usr/local/hive/bin/schematool -initSchema -dbType derby
+
+EXPOSE 8088 8042 9870 9864 10002
